@@ -396,7 +396,7 @@ resource "kubernetes_deployment" "cubemaster" {
           image = local.cube_master_image
           env {
             name  = "CUBE_MASTER_CONFIG_PATH"
-            value = "/etc/cubemaster/conf.yaml"
+            value = "/usr/local/services/cubetoolbox/CubeMaster/conf.yaml"
           }
           port {
             name           = "http"
@@ -416,7 +416,9 @@ resource "kubernetes_deployment" "cubemaster" {
           }
           volume_mount {
             name       = "conf"
-            mount_path = "/etc/cubemaster"
+            mount_path = "/usr/local/services/cubetoolbox/CubeMaster/conf.yaml"
+            sub_path   = "conf.yaml"
+            read_only  = true
           }
           # Shared CFS (NFS, ReadWriteMany): all replicas read/write the same
           # template / snapshot / runtime state.
