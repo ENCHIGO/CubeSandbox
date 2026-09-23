@@ -79,6 +79,8 @@ no agent template is registered: register one from the template market (POST /ap
 
 - **模板市场（WebUI）。** 在已安装的 OpenClaw 模板上点击**启用到数字助手**，或用**安装并启用到数字助手**一步完成制作与注册。安装弹窗要等模板制作完成后才会注册：如果在镜像仍在下载时关闭弹窗，模板会在 CubeSandbox 中就绪，但没有注册到 AgentHub。此时重新打开模板市场，在该模板上点击**启用到数字助手**即可。
 - **API。** 用 `POST /api/v1/agenthub/templates/market` 注册已有模板，只有 `templateId` 是必填，例如 `{"templateId": "<tpl-id>", "name": "OpenClaw"}`。
+
+  注册被删除过的模板 ID 目前无法再次注册，无论通过该接口还是**启用到数字助手**：被删除的注册仍占用该 ID，请求会返回 HTTP `500`，报唯一键冲突。请改为注册其他模板，或从助手发布一个。
 - **从助手发布。** 在已有助手上使用**发布助手模板**，把它的某个存档发布为模板（`POST /api/v1/agenthub/instances/{agentID}/publish-template`）。
 - **按请求指定。** 显式传入 `templateId`，此时不会查询已注册模板。
 
@@ -86,7 +88,7 @@ no agent template is registered: register one from the template market (POST /ap
 
 ### "the agent template selected by default could not be resolved"
 
-如果模板已注册，但 CubeMaster 已无法解析它——模板已从 CubeSandbox 删除、注册时填写的模板 ID 并不存在，或已发布模板背后的存档已不存在——创建会返回 HTTP `409`。重试无效：在已注册模板发生变化之前，每次都会选中同一个模板。请删除该注册（`DELETE /api/v1/agenthub/templates/{templateID}`）、把一个可用的模板标记为推荐，或显式传入 `templateId`。CubeOps 会在日志中记录它发出的标识以及 CubeMaster 的原始错误（后者不一定包含该标识）。
+如果模板已注册，但 CubeMaster 已无法解析它——模板已从 CubeSandbox 删除、注册时填写的模板 ID 并不存在，或已发布模板背后的存档已不存在——创建会返回 HTTP `409`。重试无效：在已注册模板发生变化之前，每次都会选中同一个模板。请把一个可用的模板标记为推荐，或显式传入 `templateId`。也可以删除这条失效的注册（`DELETE /api/v1/agenthub/templates/{templateID}`），但删除后该模板 ID 就无法再次注册（见上文）。CubeOps 会在日志中记录它发出的标识以及 CubeMaster 的原始错误（后者不一定包含该标识）。
 
 只有"找不到"这一类失败会被这样改写。选中的模板无法使用的其他情况——例如模板存在，但在健康节点上没有就绪副本——会以 HTTP `502` 返回 CubeMaster 的原始信息，其中带有 AgentHub 选中的模板 ID。请在 CubeSandbox 中检查该模板，或显式传入 `templateId`。
 

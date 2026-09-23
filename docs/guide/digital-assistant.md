@@ -79,6 +79,8 @@ Any one of the following fixes it:
 
 - **Template Store (WebUI).** Click **Enable Assistant** on an installed OpenClaw template, or **Install and Enable Assistant** to build and register it in one step. The install dialog registers the template only after the build finishes: if you close it while the image is still downloading, the template ends up ready in CubeSandbox but not registered with AgentHub. Open the Template Store again and click **Enable Assistant** on it.
 - **API.** Register an existing template with `POST /api/v1/agenthub/templates/market`. Only `templateId` is required, for example `{"templateId": "<tpl-id>", "name": "OpenClaw"}`.
+
+  A template ID whose registration was removed earlier cannot currently be registered again, whether through this endpoint or **Enable Assistant**. The removed registration still holds the ID, so the request fails with HTTP `500` and a duplicate-key error. Register a different template, or publish one from an assistant.
 - **Publish from an assistant.** On an existing assistant, **Publish assistant template** publishes one of its snapshots as a template (`POST /api/v1/agenthub/instances/{agentID}/publish-template`).
 - **Per request.** Pass `templateId` explicitly; the registry is then not consulted.
 
@@ -86,7 +88,7 @@ Registering from the Template Store does not mark the template **Recommended**. 
 
 ### "the agent template selected by default could not be resolved"
 
-If a template is registered but CubeMaster can no longer resolve it — it was deleted from CubeSandbox, the registration names a template ID that does not exist, or the snapshot behind a published template is gone — creation fails with HTTP `409`. Retrying does not help: the same template is selected again until the registry changes. Remove that registration (`DELETE /api/v1/agenthub/templates/{templateID}`), mark a working template **Recommended**, or pass `templateId`. CubeOps logs the identifier it sent together with CubeMaster's original error, which does not always name it.
+If a template is registered but CubeMaster can no longer resolve it — it was deleted from CubeSandbox, the registration names a template ID that does not exist, or the snapshot behind a published template is gone — creation fails with HTTP `409`. Retrying does not help: the same template is selected again until the registry changes. Mark a working template **Recommended**, or pass `templateId`. You can also remove the broken registration (`DELETE /api/v1/agenthub/templates/{templateID}`), but its template ID then cannot be registered again (see above). CubeOps logs the identifier it sent together with CubeMaster's original error, which does not always name it.
 
 Only a not-found is rewritten this way. Other failures to use the selected template — for example one that exists but has no ready replica on a healthy node — surface as HTTP `502` with CubeMaster's message, which names the template AgentHub picked. Check that template in CubeSandbox, or pass `templateId`.
 

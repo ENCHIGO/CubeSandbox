@@ -679,6 +679,12 @@ func (s *AgentHubService) CreateInstance(ctx context.Context, req CreateInstance
 		//     vanished-template case the conflict branch exists for.
 		if templateDefaulted && isCMNotFound(err) && origin != templateFallbackRegistryUnknown {
 			if origin == templateFallbackEmptyRegistry {
+				// 400 rather than the 409 below, deliberately. Both are state
+				// problems behind a well-formed request, but they are different
+				// states: here AgentHub has not been set up, and this service
+				// already answers missing setup with 400 and an actionable
+				// message (an unconfigured LLM key, ResolveLLMConfig above). The
+				// 409 is for setup that exists but disagrees with CubeMaster.
 				logging.G(ctx).Warnf("agenthub: create failed with an empty template registry, "+
 					"reporting it as a missing registration; cubemaster said: %v", err)
 				return nil, &Error{
