@@ -56,6 +56,12 @@ func (e *HTTPError) Error() string {
 // "404 page not found" — and treating it as a missing resource sends the caller
 // after the wrong fix while the real problem is that we never reached
 // CubeMaster at all.
+//
+// The same reasoning bounds the other end, and that boundary is deliberate: a
+// 5xx never counts, even when it carries a 130404 envelope — the one
+// combination of status and ret_code the paragraph above does not cover. Such a
+// response reaches callers as the opaque failure it always was, CubeMaster's
+// text included.
 func (e *HTTPError) IsNotFound() bool {
 	// A 5xx is the server saying it failed, not that the thing is missing. Even
 	// when such a body carries a not-found envelope, the caller cannot fix it by
