@@ -650,6 +650,15 @@ func (s *AgentHubService) CreateInstance(ctx context.Context, req CreateInstance
 		// Cause — writeServiceError serialises only Message — so an operator
 		// loses nothing.
 		//
+		// Only not-founds are rewritten, and that is a deliberate stop. Other
+		// failures to use the template we picked still reach the caller as the
+		// 502 below, naming it: a template with no schedulable replica reads
+		// `template <id> is not ready on any healthy node: template has no ready
+		// replica` (ErrTemplateHasNoReadyReplica, reported as 130400). 130400 is
+		// CubeMaster's catch-all, so attributing it would mean matching wording,
+		// and the identifier there is a template an operator registered and can
+		// look up, not the unprovisioned fallback #1327 is about.
+		//
 		// Attribution rests on how CubeMaster classifies the failure, not on how
 		// it words it. Both halves are worth stating because neither is enforced
 		// here:

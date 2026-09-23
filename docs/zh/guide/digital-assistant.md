@@ -88,6 +88,8 @@ no agent template is registered: register one from the template market (POST /ap
 
 如果模板已注册，但 CubeMaster 已无法解析它——模板已从 CubeSandbox 删除、注册时填写的模板 ID 并不存在，或已发布模板背后的存档已不存在——创建会返回 HTTP `409`。重试无效：在已注册模板发生变化之前，每次都会选中同一个模板。请删除该注册（`DELETE /api/v1/agenthub/templates/{templateID}`）、把一个可用的模板标记为推荐，或显式传入 `templateId`。CubeOps 会在日志中记录它发出的标识以及 CubeMaster 的原始错误（后者不一定包含该标识）。
 
+只有"找不到"这一类失败会被这样改写。选中的模板无法使用的其他情况——例如模板存在，但在健康节点上没有就绪副本——会以 HTTP `502` 返回 CubeMaster 的原始信息，其中带有 AgentHub 选中的模板 ID。请在 CubeSandbox 中检查该模板，或显式传入 `templateId`。
+
 ## 环境变量
 
 ### AgentHub 数据库

@@ -88,6 +88,8 @@ Registering from the Template Store does not mark the template **Recommended**. 
 
 If a template is registered but CubeMaster can no longer resolve it — it was deleted from CubeSandbox, the registration names a template ID that does not exist, or the snapshot behind a published template is gone — creation fails with HTTP `409`. Retrying does not help: the same template is selected again until the registry changes. Remove that registration (`DELETE /api/v1/agenthub/templates/{templateID}`), mark a working template **Recommended**, or pass `templateId`. CubeOps logs the identifier it sent together with CubeMaster's original error, which does not always name it.
 
+Only a not-found is rewritten this way. Other failures to use the selected template — for example one that exists but has no ready replica on a healthy node — surface as HTTP `502` with CubeMaster's message, which names the template AgentHub picked. Check that template in CubeSandbox, or pass `templateId`.
+
 ## Environment Variables
 
 ### AgentHub Database
