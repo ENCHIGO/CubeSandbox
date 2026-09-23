@@ -515,11 +515,18 @@ func (s *Store) GetAgentTemplate(ctx context.Context, templateID string) (*Agent
 // calls). Neither registration path writes it — RegisterMarketTemplate omits
 // the column and UpsertTemplateSQL hardcodes it false — so an install has no
 // recommended template until an operator marks one.
+//
+// created_at is selected raw, like ListAgentTemplates and GetAgentTemplate, so
+// the three return it in the same shape. That is safe on PostgreSQL too:
+// database/sql formats a time.Time into a *string destination as RFC 3339.
+// formatTimestamp is not a neutral substitute there — for this timestamp
+// without time zone column its "AT TIME ZONE 'UTC'" renders in the session time
+// zone, so a server not set to UTC gets a shifted value still labelled Z.
 func (s *Store) GetRecommendedAgentTemplate(ctx context.Context) (*AgentTemplate, error) {
 	row := s.db.WithContext(ctx).Raw(
 		`SELECT template_id, name, source_agent_id, source_snapshot_id,
 		        source_sandbox_id, model, version, persistence_mode,
-		        recommended, `+formatTimestamp("created_at")+` AS created_at
+		        recommended, created_at
 		 FROM t_agenthub_template
 		 WHERE recommended = ? AND deleted_at IS NULL
 		 ORDER BY created_at DESC, id DESC

@@ -267,12 +267,14 @@ func TestStore_GetRecommendedAgentTemplate(t *testing.T) {
 	s := env.store
 	ctx := context.Background()
 
+	// Seed through UpsertTemplateSQL, the write PublishTemplate actually uses,
+	// so the first assertion pins that path rather than the column default: if
+	// publishing ever started marking templates recommended, it fails here. The
+	// market path's INSERT lives in the handler and is not covered by this test.
 	insert := func(id string) {
 		t.Helper()
-		if err := s.DB().WithContext(ctx).Exec(
-			`INSERT INTO t_agenthub_template (template_id, name, source_agent_id, source_snapshot_id, source_sandbox_id, model, version)
-			 VALUES (?, ?, 'market', '', '', 'deepseek-v4', '1.0')`,
-			id, id,
+		if err := s.DB().WithContext(ctx).Exec(store.UpsertTemplateSQL(),
+			id, id, "agent-src", "snap-src", "sb-src", "deepseek-v4", "1.0", nil,
 		).Error; err != nil {
 			t.Fatalf("insert %s: %v", id, err)
 		}
@@ -280,13 +282,13 @@ func TestStore_GetRecommendedAgentTemplate(t *testing.T) {
 	insert("tpl-rec-old")
 	insert("tpl-rec-new")
 
-	// Registration does not set the flag, so nothing is recommended yet.
+	// Publishing does not set the flag, so nothing is recommended yet.
 	got, err := s.GetRecommendedAgentTemplate(ctx)
 	if err != nil {
 		t.Fatalf("GetRecommendedAgentTemplate: %v", err)
 	}
 	if got != nil {
-		t.Fatalf("got %q, want nil — registration must not mark a template recommended", got.TemplateID)
+		t.Fatalf("got %q, want nil — publishing must not mark a template recommended", got.TemplateID)
 	}
 
 	// Mark the older row, the way PATCH /agenthub/templates/{id} does. It must

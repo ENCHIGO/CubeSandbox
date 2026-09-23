@@ -454,13 +454,15 @@ const (
 // accumulate any number of newer non-recommended templates after the marked
 // one.
 //
-// none is true only when the listing completed and came back empty. The listing
-// is what settles emptiness — a marked template is also a listed one, so a
-// successful empty listing rules out both — while a failed listing returns
-// none=false, because the caller must not report "nothing is registered" on the
-// strength of a query that never completed. Either way the returned id is then
-// defaultAgentTemplateID, which the caller still passes to CubeMaster — kept as
-// a last resort for the install that has claimed that alias, not as a default.
+// The origin tells the caller what a CubeMaster not-found would mean. The
+// listing settles emptiness — a marked template is also a listed one, so a
+// successful empty listing rules out both — and yields
+// templateFallbackEmptyRegistry. A failed listing yields
+// templateFallbackRegistryUnknown instead, because the caller must not report
+// "nothing is registered" on the strength of a query that never completed. In
+// both cases the returned id is defaultAgentTemplateID, which the caller still
+// passes to CubeMaster — kept as a last resort for the install that has claimed
+// that alias, not as a default.
 // This does change behaviour for one corner install: where the alias is claimed
 // AND templates are registered, the registered one now wins. That is the point
 // of the fix — a template an operator actually registered beats a hand-claimed
